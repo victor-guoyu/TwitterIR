@@ -10,7 +10,7 @@ import org.apache.logging.log4j.util.Strings;
  */
 public class Configuration {
 
-    private static final String CONFIG_FILE            = "app.properties";
+    private static final String CONFIG_FILE            = "properties/app.properties";
     private static final String LOGGER_CONFIG          = "logger.config";
     private static final String LOGGER_SYSTEM_PROPERTY = "log4j.configurationFile";
     private static final String STOP_WORDS             = "stopwords.path";

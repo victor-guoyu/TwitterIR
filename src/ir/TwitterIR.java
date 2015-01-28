@@ -11,6 +11,9 @@ import org.apache.logging.log4j.util.Strings;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
@@ -34,12 +37,10 @@ public class TwitterIR {
         mainLog.info("Log Started...");
 
         try {
-            IndexWriter indexWriter = getIndexWriter();
             mainLog.info("Indexing Twitter Messages......");
-            indexTwitterMessages(indexWriter);
+            indexTwitterMessages(getIndexWriter());
             mainLog.info("Finished indexing the messages ");
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -84,10 +85,18 @@ public class TwitterIR {
                 new FileReader(new File(Configuration.getInstance().getTwitterDataFilePath())));
         String line;
         while ((line = reader.readLine()) != null) {
+            line = line.trim();
             Document doc = new Document();
+            String[] temp = line.split("\\s+");
+            //A field that is indexed but not tokenized: 
+            //For example this might be used for a 'country' field or an 'id' field
+            doc.add(new StringField("id", temp[0], Field.Store.YES));
+            // Indexed, tokenized
+            doc.add(new TextField("tweets", temp[1], Field.Store.YES));
+            indexWriter.addDocument(doc);
         }
         reader.close();
-        
+        indexWriter.close();
     }
 
     public static void main(String[] args) {
