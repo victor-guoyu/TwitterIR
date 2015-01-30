@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
@@ -26,25 +27,36 @@ import com.google.common.io.LineProcessor;
 
 public class TwitterIR {
     private Logger mainLog;
-
+    private final Level RESULT = Level.forName("RESULT", 450);
+    private enum TwitterMsg {
+        ID, TWEET
+    }
     public Logger getMainLog() {
         return mainLog;
     }
 
     public void init() {
         Configuration.getInstance();
-        mainLog = LogManager.getLogger(TwitterIR.class.getName());
+        mainLog = LogManager.getLogger(TwitterIR.class);
         mainLog.info("Log Started...");
+        mainLog.log(RESULT, "Result: logger started");
 
         try {
-            mainLog.info("Indexing Twitter Messages......");
+            mainLog.info("Indexing Twitter Messages.....");
+            mainLog.log(RESULT, "Trace: start indexing");
             indexTwitterMessages(getIndexWriter());
-            mainLog.info("Finished indexing the messages ");
+            mainLog.info("Finished indexing the messages");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Building search query from given file
+     */
+    private void buildQueries() {
+        
+    }
     /**
      * @return IndexWriter based on the Stop words provided
      */
@@ -90,9 +102,9 @@ public class TwitterIR {
             String[] temp = line.split("\\s+");
             //A field that is indexed but not tokenized: 
             //For example this might be used for a 'country' field or an 'id' field
-            doc.add(new StringField("id", temp[0], Field.Store.YES));
+            doc.add(new StringField(TwitterMsg.ID.name(), temp[0], Field.Store.YES));
             // Indexed, tokenized
-            doc.add(new TextField("tweets", temp[1], Field.Store.YES));
+            doc.add(new TextField(TwitterMsg.TWEET.name(), temp[1], Field.Store.YES));
             indexWriter.addDocument(doc);
         }
         reader.close();
