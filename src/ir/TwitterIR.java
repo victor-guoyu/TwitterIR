@@ -55,7 +55,6 @@ public class TwitterIR {
         mainLog.info("Log Started...");
         try {
             mainLog.info("Indexing Twitter Messages.....");
-            mainLog.log(RESULT, "Result: start indexing");
             indexTwitterMessages(getIndexWriter());
             mainLog.info("Finished indexing the messages, start searching");
             searchDocs();
@@ -79,12 +78,12 @@ public class TwitterIR {
                 new QueryProcessor() {
 
                     @Override
-                    public void process(String queryString) throws Exception {
+                    public void process(String queryId, String queryString) throws Exception {
                             Query query = queryParser.parse(queryString);
                             TopScoreDocCollector docCollector = TopScoreDocCollector.create(1000, true);
                             searcher.search(query, docCollector);
                             ScoreDoc[] hits = docCollector.topDocs().scoreDocs;
-                            logResult(searcher, hits);
+                            logResult(queryId, searcher, hits);
                     }
 
         });
@@ -94,11 +93,22 @@ public class TwitterIR {
      * Helper method to display and log the result
      * @throws IOException 
      */
-    private void logResult(IndexSearcher searcher, ScoreDoc[] hits) throws IOException {
+    private void logResult(String queryId,IndexSearcher searcher, ScoreDoc[] hits) throws IOException {
         for (int i = 0; i < hits.length; i++) {
             Document hitDoc = searcher.doc(hits[i].doc);  // getting actual document
-            mainLog.info("Tweet ID: "+hitDoc.get(TwitterMsg.ID.name()));
-            mainLog.info("Score: "+hits[i].score);
+            
+            String msg = new StringBuilder()
+                .append(queryId)
+                .append(" Q0 ")
+                .append(hitDoc.get(TwitterMsg.ID.name()))
+                .append(" ")
+                .append(i+1)
+                .append(" ")
+                .append(hits[i].score)
+                .append(" myRun ")
+                .toString();
+            mainLog.info(msg);
+            mainLog.log(RESULT, msg);
         }
     }
 

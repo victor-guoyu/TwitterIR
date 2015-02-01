@@ -28,13 +28,15 @@ public class QueryReader {
             Node current = nodeList.item(i);
             if (current.getNodeType() == Node.ELEMENT_NODE) {
                 Element element = (Element) current;
+                String queryId = element.getElementsByTagName("num").item(0).getTextContent();
+                queryId = queryId.split(":")[1].trim();
                 String queryString = element.getElementsByTagName("title").item(0).getTextContent();
-                processor.process(queryString);
+                processor.process(queryId, queryString);
             }
         }
     }
 
     public static interface QueryProcessor {
-        public void process(String queryString) throws Exception;
+        public void process(String queryId, String queryString) throws Exception;
     }
 }
