@@ -30,6 +30,8 @@ public class QueryReader {
                 Element element = (Element) current;
                 String queryId = element.getElementsByTagName("num").item(0).getTextContent();
                 queryId = queryId.split(":")[1].trim();
+                queryId = queryId.substring(2);
+                queryId = queryId.replaceFirst ("^0*", "");
                 String queryString = element.getElementsByTagName("title").item(0).getTextContent();
                 processor.process(queryId, queryString);
             }

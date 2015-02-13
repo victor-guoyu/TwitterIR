@@ -3,8 +3,10 @@ package ir;
 import ir.QueryReader.QueryProcessor;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 
 import org.apache.logging.log4j.Level;
@@ -18,18 +20,21 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocsCollector;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.Version;
 
 import com.google.common.base.Charsets;
@@ -57,6 +62,7 @@ public class TwitterIR {
             mainLog.info("Indexing Twitter Messages.....");
             indexTwitterMessages(getIndexWriter());
             mainLog.info("Finished indexing the messages, start searching");
+            getStat();
             searchDocs();
             mainLog.info("............DONE.............");
         } catch (Exception e) {
@@ -99,13 +105,13 @@ public class TwitterIR {
             
             String msg = new StringBuilder()
                 .append(queryId)
-                .append(" Q0 ")
+                .append("\tQ0\t")
                 .append(hitDoc.get(TwitterMsg.ID.name()))
-                .append(" ")
+                .append("\t")
                 .append(i+1)
-                .append(" ")
+                .append("\t")
                 .append(hits[i].score)
-                .append(" myRun ")
+                .append("\tmyRun")
                 .toString();
             mainLog.info(msg);
             mainLog.log(RESULT, msg);
@@ -154,7 +160,7 @@ public class TwitterIR {
         while ((line = reader.readLine()) != null) {
             line = line.trim();
             Document doc = new Document();
-            String[] temp = line.split("\\s+");
+            String[] temp = line.split("\t");
             //A field that is indexed but not tokenized: 
             //For example this might be used for a 'country' field or an 'id' field
             doc.add(new StringField(TwitterMsg.ID.name(), temp[0], Field.Store.YES));
@@ -164,6 +170,22 @@ public class TwitterIR {
         }
         reader.close();
         indexWriter.close();
+    }
+
+    private void getStat() throws IOException {
+        IndexReader reader = DirectoryReader.open(indexDir);
+        FileWriter fw = new FileWriter(new File("logs/tokens.log"));
+        BufferedWriter bw = new BufferedWriter(fw);
+        Fields fields = MultiFields.getFields(reader);
+        Terms terms = fields.terms(TwitterMsg.TWEET.name());
+        TermsEnum iterator = terms.iterator(null);
+        BytesRef byteRef = null;
+        while((byteRef = iterator.next()) != null) {
+                String term = byteRef.utf8ToString();
+                bw.write(term);
+                bw.newLine();
+        }
+        bw.close();
     }
 
     public static void main(String[] args) {

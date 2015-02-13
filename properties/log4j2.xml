@@ -2,7 +2,7 @@
 <Configuration status="WARN">
   <Appenders>
     <Console name="console-log" target="SYSTEM_OUT">
-      <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"/>
+      <PatternLayout pattern="[%-5level] %d{HH:mm:ss} %c{1} - %msg%n"/>
     </Console>
     <File name="file-log" fileName="logs/TwitterIR.log" append="false">
       <PatternLayout pattern="%m%n"/>
